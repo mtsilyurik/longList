@@ -114,9 +114,8 @@ def get_all_users() -> (int, list):
 
 
 def main():
-    code, users = get_all_users()
-    print(code)
-    print(users)
+    headers = loginAdmin()
+    print(headers)
 
 
 if __name__ == "__main__":
