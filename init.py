@@ -51,14 +51,14 @@ admin = User(
 )
 
 
-def register(u: User):
+def register(u: User) -> int:
     payload = json.dumps(u.__dict__)
     response = requests.post(url=URL.get("register"), headers=HEADERS, data=payload)
 
-    print(response.status_code)
-
-    if response.status_code == 500:
+    if response.status_code != 200:
         print(response.text)
+
+    return response.status_code
 
 
 def loginAdmin() -> dict:
