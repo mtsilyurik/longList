@@ -122,7 +122,7 @@ def get_all_users() -> (int, list):
     return response.status_code, users
 
 
-def get_users_by_slice(pn: int) -> (int, list):
+def get_users_by_slice(pn: int) -> (int, list, int, int):
     headers = loginAdmin()
     response = requests.get(url=URL.get("get_all_by_slice") + str(pn), headers=headers)
     response_json = json.loads(response.text)
