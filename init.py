@@ -4,6 +4,8 @@ from pprint import pprint
 from random import choice
 import json
 import requests
+
+
 @dataclass
 class User:
     email: str
@@ -11,13 +13,15 @@ class User:
     password: str
     phoneNumber: str
 
+
 @dataclass
-class category:
+class Category:
     id: int
     name: str
     description: str
     price: int
     image: str
+
 
 @dataclass
 class Product:
@@ -33,6 +37,7 @@ URL = {
     "login": BASE_URL + "/auth/login",
     "create_product": BASE_URL + "/product/create",
     "get_all_users": BASE_URL + "/user/get-all",
+    "get_all_by_slice": BASE_URL + "/user/get-all-by-slice?pageNumber=",
 }
 
 HEADERS = {"Content-Type": "application/json"}
@@ -45,6 +50,7 @@ admin = User(
     phoneNumber="+123456789"
 )
 
+
 def register(u: User):
     payload = json.dumps(u.__dict__)
     response = requests.post(url=URL.get("register"), headers=HEADERS, data=payload)
@@ -53,6 +59,7 @@ def register(u: User):
 
     if response.status_code == 500:
         print(response.text)
+
 
 def loginAdmin() -> dict:
     payload = json.dumps(admin.__dict__)
@@ -63,9 +70,10 @@ def loginAdmin() -> dict:
     response = json.loads(response.text)
     token = response["token"]
 
-    header ={"Authorization": "Bearer " + token}
+    header = {"Authorization": "Bearer " + token}
 
     return header
+
 
 def login(u: User) -> dict:
     payload = json.dumps(u.__dict__)
@@ -81,7 +89,8 @@ def login(u: User) -> dict:
 
     return header
 
-def createProduct(headers: dict) -> int:
+
+def create_product(headers: dict) -> int:
     p = Product(
         categoryId="1",
         name=generate.word(),
@@ -99,6 +108,7 @@ def createProduct(headers: dict) -> int:
 
     return response.status_code
 
+
 def get_all_users() -> (int, list):
     headers = loginAdmin()
     print(headers)
@@ -112,10 +122,28 @@ def get_all_users() -> (int, list):
     return response.status_code, users
 
 
+def get_users_by_slice(pn: int) -> (int, list):
+    headers = loginAdmin()
+    response = requests.get(url=URL.get("get_all_by_slice") + str(pn), headers=headers)
+    response_json = json.loads(response.text)
+
+    if response.status_code != 200:
+        print(response.text)
+        return response.status_code, []
+
+    users = response_json.get("usersPage").get("content")
+    total_elements = response_json.get("usersPage").get("totalElements")
+    total_pages = response_json.get("usersPage").get("totalPages")
+
+    return response.status_code, users, total_elements, total_pages
+
 
 def main():
-    headers = loginAdmin()
-    print(headers)
+    code, users, total_elements, total_pages = get_users_by_slice(0)
+    print("Status code – " + str(code))
+    print("Total elements – " + str(total_elements))
+    print("Total pages – " + str(total_pages))
+    pprint(users)
 
 
 if __name__ == "__main__":
