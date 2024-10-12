@@ -4,6 +4,7 @@ from pprint import pprint
 from random import choice
 import json
 import requests
+from requests import Session
 
 
 @dataclass
@@ -92,21 +93,23 @@ def login(u: User) -> dict:
 
 def create_product(headers: dict) -> int:
     p = Product(
-        categoryId="1",
+        categoryId=str("1"),
         name=generate.word(),
         description=generate.sentence(),
         price=generate.random_number(),
     )
+    param = json.dumps(p.__dict__)
+    # print(type(param))
+    # headers["Content-Type"] = "multipart/form-data; boundary=<calculated when request is sent>"
+    with Session() as session:
+        response = session.post(url=URL.get("create_product"), headers=headers, data=json.loads(param))
 
-    payload = json.dumps(p.__dict__)
-    print(payload)
-    headers["Content-Type"] = "multipart/form-data; boundary=<calculated when request is sent>"
-    response = requests.post(url=URL.get("create_product"), headers=headers, data=payload)
+        if response.status_code != 200:
+            pprint(response.json())
 
-    if response.status_code != 200:
-        print(response.text)
-
-    return response.status_code
+        # print(response.text)
+        # print(response.status_code)
+        return response.status_code
 
 
 def get_all_users() -> (int, list):
@@ -139,12 +142,15 @@ def get_users_by_slice(pn: int) -> (int, list, int, int):
 
 
 def main():
-    code, users, total_elements, total_pages = get_users_by_slice(0)
-    print("Status code – " + str(code))
-    print("Total elements – " + str(total_elements))
-    print("Total pages – " + str(total_pages))
-    pprint(users)
-
+    # code, users, total_elements, total_pages = get_users_by_slice(0)
+    # print("Status code – " + str(code))
+    # print("Total elements – " + str(total_elements))
+    # print("Total pages – " + str(total_pages))
+    # pprint(users)
+    headers = loginAdmin()
+    for _ in range(500):
+        code = create_product(headers)
+        print(code)
 
 if __name__ == "__main__":
     main()
